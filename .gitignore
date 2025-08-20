@@ -1,0 +1,61 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python virtual envs
+venv/
+.venv/
+env/
+BackEnd/.venv/
+
+# Environment files
+.env
+.env.*
+
+# Node
+node_modules/
+FrontEnd/node_modules/
+
+# Ignore contents of storage but keep the folder tracked with a .gitkeep
+storage/*
+!storage/.gitkeep
+
+# Database / data directories
+db-data/
+
+# Docker
+docker-compose.override.yml
+docker-compose.*.yml
+Dockerfile
+
+# IDEs / editors
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+
+# Logs
+*.log
+logs/
+
+# Build / distribution
+dist/
+build/
+*.egg-info/
+
+# Misc
+*.sqlite3
+.pytest_cache/
+.coverage
+coverage/
+htmlcov/
+pip-wheel-metadata/
+
+# Certificates
+*.pem
+*.key
+
+# Keep lockfiles tracked
+# (bun.lockb, package-lock.json, pnpm-lock.yaml etc.)
