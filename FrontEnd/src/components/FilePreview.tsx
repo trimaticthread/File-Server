@@ -85,14 +85,17 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose }) => {
 
       case 'pdf':
         return (
-          <div className="w-full h-96 border border-gray-200 rounded">
-            <iframe
-              src={`https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent('https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf')}`}
-              width="100%"
-              height="100%"
-              className="rounded"
-              title={`PDF: ${file.name}`}
-            />
+          <div className="w-full h-96 border border-gray-200 rounded bg-gray-50">
+            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <div className="text-6xl mb-4">📄</div>
+              <p className="text-lg mb-2">PDF Önizlemesi</p>
+              <p className="text-sm text-center mb-4">
+                PDF dosyaları için önizleme şu anda desteklenmiyor.
+              </p>
+              <p className="text-xs text-gray-400">
+                Dosyayı görüntülemek için indirin.
+              </p>
+            </div>
           </div>
         );
 

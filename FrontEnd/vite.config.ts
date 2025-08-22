@@ -26,4 +26,21 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      // Console uyarılarını bastır
+      onwarn(warning, warn) {
+        // PDF.js ve güvenlik uyarılarını filtrele
+        if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
+        if (warning.message.includes('pdf.js')) return;
+        if (warning.message.includes('SecurityError')) return;
+        if (warning.message.includes('mozilla.github.io')) return;
+        warn(warning);
+      }
+    }
+  },
+  // Geliştirme sırasında console uyarılarını bastır
+  define: {
+    __SUPPRESS_PDF_WARNINGS__: true,
+  }
 }));
