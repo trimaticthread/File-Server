@@ -11,12 +11,14 @@ interface FileItem {
   type: 'file' | 'folder';
   size?: number;
   createdAt: Date;
-  path: string[];
+  contentType?: string;
+  isDirectory: boolean;
+  parentId?: number | null;
 }
 
 interface FolderCardProps {
   folder: FileItem;
-  onNavigate: (folderName: string) => void;
+  onNavigate: (folderId: string, folderName: string) => void;
   onDelete: (folderId: string) => void;
   viewMode: 'grid' | 'list';
 }
@@ -33,7 +35,7 @@ const FolderCard: React.FC<FolderCardProps> = ({ folder, onNavigate, onDelete, v
   };
 
   const handleFolderClick = () => {
-    onNavigate(folder.name);
+    onNavigate(folder.id, folder.name);
   };
 
   if (viewMode === 'list') {

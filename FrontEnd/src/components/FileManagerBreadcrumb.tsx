@@ -4,37 +4,29 @@ import { Button } from '@/components/ui/button';
 import { Home, ChevronRight } from 'lucide-react';
 
 interface FileManagerBreadcrumbProps {
-  currentPath: string[];
+  folderPath: {id: number | null, name: string}[];
   onGoHome: () => void;
   onNavigateTo: (index: number) => void;
 }
 
 const FileManagerBreadcrumb: React.FC<FileManagerBreadcrumbProps> = ({
-  currentPath,
+  folderPath,
   onGoHome,
   onNavigateTo,
 }) => {
   return (
     <nav className="flex items-center space-x-2 mb-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onGoHome}
-        className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
-      >
-        <Home className="w-4 h-4" />
-        <span>Ana Dizin</span>
-      </Button>
-      {currentPath.map((folder, index) => (
+      {folderPath.map((folder, index) => (
         <React.Fragment key={index}>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
+          {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onNavigateTo(index)}
-            className="text-blue-600 hover:text-blue-800"
+            onClick={() => index === 0 ? onGoHome() : onNavigateTo(index)}
+            className="flex items-center space-x-1 text-blue-600 hover:text-blue-800"
           >
-            {folder}
+            {index === 0 && <Home className="w-4 h-4" />}
+            <span>{folder.name}</span>
           </Button>
         </React.Fragment>
       ))}

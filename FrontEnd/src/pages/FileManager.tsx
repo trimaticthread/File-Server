@@ -15,12 +15,17 @@ interface FileManagerProps {
 
 const FileManager: React.FC<FileManagerProps> = ({ username, onLogout }) => {
   const {
-    currentPath,
+    currentFolderId,
+    folderPath,
     currentFiles,
     searchTerm,
     viewMode,
     showCreateFolder,
     previewFile,
+    isLoading,
+    isUploading,
+    uploadProgress,
+    error,
     setSearchTerm,
     setViewMode,
     setShowCreateFolder,
@@ -32,6 +37,7 @@ const FileManager: React.FC<FileManagerProps> = ({ username, onLogout }) => {
     handleFileUpload,
     handlePreviewFile,
     handleClosePreview,
+    refreshFiles,
   } = useFileManager();
 
   return (
@@ -40,7 +46,7 @@ const FileManager: React.FC<FileManagerProps> = ({ username, onLogout }) => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <FileManagerBreadcrumb
-          currentPath={currentPath}
+          folderPath={folderPath}
           onGoHome={handleGoHome}
           onNavigateTo={handleNavigateTo}
         />
@@ -52,15 +58,20 @@ const FileManager: React.FC<FileManagerProps> = ({ username, onLogout }) => {
           onViewModeChange={setViewMode}
           onCreateFolder={() => setShowCreateFolder(true)}
           onFileUpload={handleFileUpload}
+          isUploading={isUploading}
+          uploadProgress={uploadProgress}
         />
 
         <FileGrid
           files={currentFiles}
           viewMode={viewMode}
           searchTerm={searchTerm}
+          isLoading={isLoading}
+          error={error}
           onDeleteFile={handleDeleteFile}
           onPreviewFile={handlePreviewFile}
           onNavigateToFolder={handleNavigateToFolder}
+          onRetry={refreshFiles}
         />
       </div>
 

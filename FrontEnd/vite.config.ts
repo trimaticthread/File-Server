@@ -7,7 +7,18 @@ import path from "path";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8080,
+    port: 8081,  // Port 8081'e güncellendi
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => {
+          console.log('🔀 Proxy rewrite:', path, '→', path);
+          return path;
+        }
+      },
+    },
   },
   plugins: [react(), tailwindcss()],
   resolve: {

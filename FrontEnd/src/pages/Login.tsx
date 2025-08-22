@@ -65,10 +65,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-300" />
                 <Input
                   id="username"
+                  name="username"
                   type="text"
                   placeholder="Kullanıcı adınızı giriniz"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder-blue-200 focus:border-blue-400 focus:ring-blue-400"
                 />
               </div>
@@ -82,10 +87,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-300" />
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   placeholder="Şifrenizi giriniz"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder-blue-200 focus:border-blue-400 focus:ring-blue-400"
                 />
               </div>

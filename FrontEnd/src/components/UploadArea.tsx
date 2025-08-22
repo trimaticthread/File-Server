@@ -3,12 +3,15 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 interface UploadAreaProps {
   onFileUpload: (files: File[]) => void;
+  isUploading?: boolean;
+  uploadProgress?: number;
 }
 
-const UploadArea: React.FC<UploadAreaProps> = ({ onFileUpload }) => {
+const UploadArea: React.FC<UploadAreaProps> = ({ onFileUpload, isUploading = false, uploadProgress = 0 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -61,10 +64,23 @@ const UploadArea: React.FC<UploadAreaProps> = ({ onFileUpload }) => {
         <Button
           onClick={() => fileInputRef.current?.click()}
           variant="outline"
-          className="flex items-center space-x-2 hover:bg-blue-50 hover:border-blue-300"
+          disabled={isUploading}
+          className="flex items-center space-x-2 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Upload className="w-4 h-4" />
-          <span>Dosya Yükle</span>
+          {isUploading ? (
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                <span>Yükleniyor... %{Math.round(uploadProgress)}</span>
+              </div>
+              <Progress value={uploadProgress} className="w-full" />
+            </div>
+          ) : (
+            <>
+              <Upload className="w-4 h-4" />
+              <span>Dosya Yükle</span>
+            </>
+          )}
         </Button>
         
         <input
@@ -73,6 +89,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({ onFileUpload }) => {
           multiple
           onChange={handleFileSelect}
           className="hidden"
+          disabled={isUploading}
         />
       </div>
 

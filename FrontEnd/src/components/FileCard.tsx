@@ -14,6 +14,7 @@ import {
   MoreVertical 
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { downloadUrl } from '@/lib/api';
 
 interface FileItem {
   id: string;
@@ -21,7 +22,9 @@ interface FileItem {
   type: 'file' | 'folder';
   size?: number;
   createdAt: Date;
-  path: string[];
+  contentType?: string;
+  isDirectory: boolean;
+  parentId?: number | null;
 }
 
 interface FileCardProps {
@@ -128,7 +131,17 @@ const FileCard: React.FC<FileCardProps> = ({ file, onDelete, onPreview, viewMode
                     <span>Önizle</span>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem className="flex items-center space-x-2 hover:bg-gray-50">
+                <DropdownMenuItem 
+                  className="flex items-center space-x-2 hover:bg-gray-50"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = downloadUrl(file.id);
+                    link.download = file.name;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                >
                   <Download className="w-4 h-4" />
                   <span>İndir</span>
                 </DropdownMenuItem>

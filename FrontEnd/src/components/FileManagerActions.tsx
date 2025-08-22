@@ -12,6 +12,8 @@ interface FileManagerActionsProps {
   onViewModeChange: (mode: 'grid' | 'list') => void;
   onCreateFolder: () => void;
   onFileUpload: (files: File[]) => void;
+  isUploading?: boolean;
+  uploadProgress?: number;
 }
 
 const FileManagerActions: React.FC<FileManagerActionsProps> = ({
@@ -21,6 +23,8 @@ const FileManagerActions: React.FC<FileManagerActionsProps> = ({
   onViewModeChange,
   onCreateFolder,
   onFileUpload,
+  isUploading = false,
+  uploadProgress = 0,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
@@ -33,7 +37,7 @@ const FileManagerActions: React.FC<FileManagerActionsProps> = ({
           <span>Klasör Oluştur</span>
         </Button>
         
-        <UploadArea onFileUpload={onFileUpload} />
+        <UploadArea onFileUpload={onFileUpload} isUploading={isUploading} uploadProgress={uploadProgress} />
       </div>
 
       <div className="flex items-center space-x-4">

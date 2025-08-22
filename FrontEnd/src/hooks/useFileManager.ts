@@ -1,6 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { listFiles, uploadFile, deleteFile, downloadUrl, createFolder } from '@/lib/api';
 
 interface FileItem {
   id: string;
@@ -8,101 +9,181 @@ interface FileItem {
   type: 'file' | 'folder';
   size?: number;
   createdAt: Date;
-  path: string[];
+  contentType?: string;
+  isDirectory: boolean;
+  parentId?: number | null;
 }
 
-const initialFiles: FileItem[] = [
-  { id: '1', name: 'Belgeler', type: 'folder', createdAt: new Date(), path: [] },
-  { id: '2', name: 'Resimler', type: 'folder', createdAt: new Date(), path: [] },
-  { id: '3', name: 'Projeler', type: 'folder', createdAt: new Date(), path: [] },
-  { id: '4', name: 'rapor.pdf', type: 'file', size: 2048000, createdAt: new Date(), path: [] },
-  { id: '5', name: 'sunum.pptx', type: 'file', size: 5120000, createdAt: new Date(), path: [] },
-  { id: '6', name: 'manzara.jpg', type: 'file', size: 1024000, createdAt: new Date(), path: [] },
-  { id: '7', name: 'notlar.txt', type: 'file', size: 5120, createdAt: new Date(), path: [] },
-  { id: '8', name: 'makale.docx', type: 'file', size: 512000, createdAt: new Date(), path: [] },
-];
-
 export const useFileManager = () => {
-  const [currentPath, setCurrentPath] = useState<string[]>([]);
-  const [files, setFiles] = useState<FileItem[]>(initialFiles);
+  const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
+  const [folderPath, setFolderPath] = useState<{id: number | null, name: string}[]>([
+    { id: null, name: 'Ana Dizin' }
+  ]);
+  const [files, setFiles] = useState<FileItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const currentFiles = files.filter(file => 
-    JSON.stringify(file.path) === JSON.stringify(currentPath) &&
     file.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleNavigateToFolder = (folderName: string) => {
-    setCurrentPath([...currentPath, folderName]);
+  // Load files from backend
+  const loadFiles = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const items = await listFiles(currentFolderId || undefined);
+      
+      const mapped = items.map(i => ({
+        id: String(i.id),
+        name: i.filename,
+        type: i.is_directory ? 'folder' as const : 'file' as const,
+        size: i.size ?? undefined,
+        createdAt: new Date(i.created_at),
+        contentType: i.content_type ?? undefined,
+        isDirectory: i.is_directory,
+        parentId: i.parent_id,
+      }));
+      
+      setFiles(mapped);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Dosyalar yüklenirken hata oluştu';
+      setError(errorMsg);
+      toast({ 
+        title: 'Hata', 
+        description: errorMsg,
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentFolderId, toast]);
+
+  useEffect(() => {
+    loadFiles();
+  }, [loadFiles]);
+
+  const handleNavigateToFolder = (folderId: string, folderName: string) => {
+    const id = parseInt(folderId);
+    setCurrentFolderId(id);
+    setFolderPath([...folderPath, { id, name: folderName }]);
   };
 
   const handleNavigateTo = (index: number) => {
-    setCurrentPath(currentPath.slice(0, index + 1));
+    const targetFolder = folderPath[index];
+    setCurrentFolderId(targetFolder.id);
+    setFolderPath(folderPath.slice(0, index + 1));
   };
 
   const handleGoHome = () => {
-    setCurrentPath([]);
+    setCurrentFolderId(null);
+    setFolderPath([{ id: null, name: 'Ana Dizin' }]);
   };
 
-  const handleDeleteFile = (fileId: string) => {
-    setFiles(files.filter(file => file.id !== fileId));
-    toast({
-      title: "Dosya Silindi",
-      description: "Dosya başarıyla silindi.",
-    });
+  const handleDeleteFile = async (fileId: string) => {
+    try {
+      await deleteFile(fileId);
+      await loadFiles(); // Reload files after deletion
+      toast({ 
+        title: 'Başarılı', 
+        description: 'Öğe başarıyla silindi.' 
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Öğe silinemedi';
+      toast({ 
+        title: 'Hata', 
+        description: errorMsg,
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleCreateFolder = (folderName: string) => {
-    const newFolder: FileItem = {
-      id: Date.now().toString(),
-      name: folderName,
-      type: 'folder',
-      createdAt: new Date(),
-      path: currentPath,
-    };
-    setFiles([...files, newFolder]);
-    toast({
-      title: "Klasör Oluşturuldu",
-      description: `"${folderName}" klasörü oluşturuldu.`,
-    });
+  const handleCreateFolder = async (folderName: string) => {
+    try {
+      await createFolder(folderName, currentFolderId || undefined);
+      await loadFiles(); // Reload files after creation
+      toast({
+        title: "Klasör Oluşturuldu",
+        description: `"${folderName}" klasörü oluşturuldu.`,
+      });
+      setShowCreateFolder(false);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Klasör oluşturulamadı';
+      toast({ 
+        title: 'Hata', 
+        description: errorMsg,
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleFileUpload = (uploadedFiles: File[]) => {
-    const newFiles: FileItem[] = uploadedFiles.map(file => ({
-      id: Date.now().toString() + Math.random(),
-      name: file.name,
-      type: 'file',
-      size: file.size,
-      createdAt: new Date(),
-      path: currentPath,
-    }));
-    setFiles([...files, ...newFiles]);
-    toast({
-      title: "Dosyalar Yüklendi",
-      description: `${uploadedFiles.length} dosya başarıyla yüklendi.`,
-    });
+  const handleFileUpload = async (uploadedFiles: File[]) => {
+    setIsUploading(true);
+    setUploadProgress(0);
+    let successCount = 0;
+    
+    for (let i = 0; i < uploadedFiles.length; i++) {
+      const f = uploadedFiles[i];
+      try {
+        await uploadFile(f, currentFolderId || undefined);
+        successCount++;
+        setUploadProgress(((i + 1) / uploadedFiles.length) * 100);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : `Yükleme başarısız: ${f.name}`;
+        toast({ 
+          title: 'Hata', 
+          description: errorMsg,
+          variant: 'destructive'
+        });
+      }
+    }
+    
+    setIsUploading(false);
+    setUploadProgress(0);
+    
+    if (successCount > 0) {
+      await loadFiles(); // Reload files after upload
+      toast({ 
+        title: 'Başarılı', 
+        description: `${successCount} dosya başarıyla yüklendi.` 
+      });
+    }
   };
 
   const handlePreviewFile = (file: FileItem) => {
     setPreviewFile(file);
   };
 
+  const getDownloadUrl = (fileId: string) => downloadUrl(fileId);
+
   const handleClosePreview = () => {
     setPreviewFile(null);
   };
 
+  const refreshFiles = () => {
+    loadFiles();
+  };
+
   return {
     // State
-    currentPath,
+    currentFolderId,
+    folderPath,
     currentFiles,
     searchTerm,
     viewMode,
     showCreateFolder,
     previewFile,
+    isLoading,
+    isUploading,
+    uploadProgress,
+    error,
     
     // Actions
     setSearchTerm,
@@ -114,7 +195,9 @@ export const useFileManager = () => {
     handleDeleteFile,
     handleCreateFolder,
     handleFileUpload,
+    getDownloadUrl,
     handlePreviewFile,
     handleClosePreview,
+    refreshFiles,
   };
 };

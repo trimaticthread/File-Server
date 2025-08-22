@@ -26,7 +26,7 @@ services:
         condition: service_healthy
     volumes:
       - ./BackEnd:/app
-      - ./storage:/storage
+      - ./storage:/storage          # host ./storage ↔ container /storage
     ports:
       - "8000:8000"
     command: >

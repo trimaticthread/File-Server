@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Download, ZoomIn, ZoomOut } from 'lucide-react';
+import { downloadUrl } from '@/lib/api';
 
 interface FileItem {
   id: string;
@@ -10,7 +11,9 @@ interface FileItem {
   type: 'file' | 'folder';
   size?: number;
   createdAt: Date;
-  path: string[];
+  contentType?: string;
+  isDirectory: boolean;
+  parentId?: number | null;
 }
 
 interface FilePreviewProps {
@@ -30,8 +33,8 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose }) => {
   const renderPreviewContent = () => {
     const extension = getFileExtension(file.name);
     
-    // Simüle edilmiş dosya URL'si (gerçek uygulamada server'dan gelecek)
-    const fileUrl = `/api/files/${file.id}`;
+    // Backend'den gelen gerçek dosya URL'si
+    const fileUrl = downloadUrl(file.id);
 
     switch (extension) {
       case 'jpg':
@@ -63,7 +66,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose }) => {
             </div>
             <div className="overflow-auto max-h-96 w-full flex justify-center">
               <img
-                src={`https://via.placeholder.com/600x400/e2e8f0/64748b?text=${encodeURIComponent(file.name)}`}
+                src={fileUrl}
                 alt={file.name}
                 style={{ 
                   transform: `scale(${zoom})`,
@@ -71,6 +74,10 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose }) => {
                   height: 'auto'
                 }}
                 className="border border-gray-200 rounded"
+                onError={(e) => {
+                  // Fallback to placeholder if image fails to load
+                  (e.target as HTMLImageElement).src = `https://via.placeholder.com/600x400/e2e8f0/64748b?text=${encodeURIComponent(file.name)}`;
+                }}
               />
             </div>
           </div>
@@ -178,6 +185,14 @@ Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`}
               variant="outline"
               size="sm"
               className="flex items-center space-x-2"
+              onClick={() => {
+                const link = document.createElement('a');
+                link.href = downloadUrl(file.id);
+                link.download = file.name;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
             >
               <Download className="w-4 h-4" />
               <span>İndir</span>
