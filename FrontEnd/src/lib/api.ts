@@ -23,13 +23,21 @@ export async function listFiles(parentId?: number): Promise<FileOut[]> {
     }
     
     const url = `${API_BASE}/files${params.toString() ? '?' + params.toString() : ''}`
-    console.log('🚀 Fetching URL:', url)
+    console.log('� Listing files:', {
+      parentId: parentId,
+      url: url,
+      params: params.toString()
+    });
     
     const res = await fetch(url)
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}: ${res.statusText}`)
     }
     const data: FileOut[] = await res.json()
+    console.log('📋 Files loaded:', {
+      count: data.length,
+      files: data.map(f => ({ id: f.id, name: f.filename, parent_id: f.parent_id, is_directory: f.is_directory }))
+    });
     return data
   } catch (error) {
     console.error('❌ List files error:', error)
@@ -39,26 +47,52 @@ export async function listFiles(parentId?: number): Promise<FileOut[]> {
 
 export async function uploadFile(file: File, parentId?: number): Promise<FileOut> {
   try {
+    console.log('📤 Upload başlıyor:', {
+      fileName: file.name,
+      fileSize: file.size,
+      parentId: parentId,
+      parentIdType: typeof parentId,
+      parentIdIsUndefined: parentId === undefined,
+      parentIdIsNull: parentId === null,
+      targetURL: `${API_BASE}/files/upload`
+    });
+
     const fd = new FormData()
     fd.append('file', file)
-    if (parentId !== undefined) {
+    if (parentId !== undefined && parentId !== null) {
       fd.append('parent_id', parentId.toString())
+      console.log('🎯 Parent ID form data\'ya eklendi:', parentId);
+    } else {
+      console.log('🚫 Parent ID eklenmedi (undefined veya null)');
     }
+
+    console.log('📦 FormData içeriği:', {
+      file: fd.get('file'),
+      parent_id: fd.get('parent_id')
+    });
 
     const res = await fetch(`${API_BASE}/files/upload`, {
       method: 'POST',
       body: fd,
     })
 
+    console.log('📡 Upload response:', {
+      status: res.status,
+      statusText: res.statusText,
+      ok: res.ok
+    });
+
     if (!res.ok) {
       const errorText = await res.text()
+      console.error('❌ Upload error response:', errorText);
       throw new Error(`Yükleme başarısız (${res.status}): ${errorText}`)
     }
 
     const data: FileOut = await res.json()
+    console.log('✅ Upload başarılı:', data);
     return data
   } catch (error) {
-    console.error('Upload file error:', error)
+    console.error('💥 Upload file error:', error)
     throw error
   }
 }

@@ -1,0 +1,2 @@
+Bu bir test dosyasıdır.
+Klasör içine upload edilecek.

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+
 class FileOut(BaseModel):
     id: int
     filename: str
@@ -12,6 +13,7 @@ class FileOut(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class CreateFolderRequest(BaseModel):
     name: str
