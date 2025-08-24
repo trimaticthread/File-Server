@@ -62,12 +62,6 @@ export const useFileManager = () => {
 
   // Load files from backend
   const loadFiles = useCallback(async () => {
-    console.log('📋 loadFiles çağrıldı:', {
-      currentFolderId: currentFolderId,
-      currentFolderIdType: typeof currentFolderId,
-      folderPath: folderPath
-    });
-    
     try {
       setIsLoading(true);
       setError(null);
@@ -104,18 +98,8 @@ export const useFileManager = () => {
 
   const handleNavigateToFolder = (folderId: string, folderName: string) => {
     const id = parseInt(folderId);
-    console.log('🚁 NAVIGATE TO FOLDER:', {
-      folderId: folderId,
-      folderName: folderName,
-      parsedId: id,
-      beforeCurrentFolderId: currentFolderId
-    });
     setCurrentFolderId(id);
     setFolderPath([...folderPath, { id, name: folderName }]);
-    console.log('🚁 NAVIGATE COMPLETE:', {
-      newCurrentFolderId: id,
-      newFolderPath: [...folderPath, { id, name: folderName }]
-    });
   };
 
   const handleNavigateTo = (index: number) => {
@@ -192,13 +176,6 @@ export const useFileManager = () => {
   };
 
   const handleFileUpload = async (uploadedFiles: File[]) => {
-    console.log('🚀 File upload başlıyor:', {
-      fileCount: uploadedFiles.length,
-      currentFolderId: currentFolderId,
-      currentFolderIdType: typeof currentFolderId,
-      folderPath: folderPath
-    });
-    
     setIsUploading(true);
     setUploadProgress(0);
     let successCount = 0;
@@ -207,20 +184,6 @@ export const useFileManager = () => {
       const f = uploadedFiles[i];
       try {
         const parentIdToSend = currentFolderId || undefined;
-        console.log('📁 Dosya yükleniyor:', {
-          fileName: f.name,
-          currentFolderId: currentFolderId,
-          parentIdToSend: parentIdToSend,
-          parentIdToSendType: typeof parentIdToSend
-        });
-        
-        console.log('🔍 DEBUG - Upload öncesi durum:', {
-          currentFolderId: currentFolderId,
-          isNull: currentFolderId === null,
-          isUndefined: currentFolderId === undefined,
-          parentIdToSend: parentIdToSend,
-          parentIdToSendIsUndefined: parentIdToSend === undefined
-        });
         
         await uploadFile(f, parentIdToSend);
         successCount++;
@@ -238,17 +201,8 @@ export const useFileManager = () => {
     setIsUploading(false);
     setUploadProgress(0);
     
-    console.log('🔄 Upload tamamlandı, files reload ediliyor:', {
-      successCount: successCount,
-      currentFolderId: currentFolderId,
-      folderPath: folderPath
-    });
-    
     if (successCount > 0) {
-      // currentFolderId'yi koruyarak reload yap
-      const folderIdToKeep = currentFolderId;
-      console.log('🎯 Reload sırasında koruyacağımız folder ID:', folderIdToKeep);
-      await loadFiles(); 
+      await loadFiles();
       toast({ 
         title: 'Başarılı', 
         description: `${successCount} dosya başarıyla yüklendi.` 

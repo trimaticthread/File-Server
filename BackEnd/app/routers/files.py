@@ -61,12 +61,6 @@ async def upload(
     file = form.get('file')
     parent_id_raw = form.get('parent_id')
     
-    print(f"🔍 BACKEND DEBUG - Upload başlıyor:")
-    print(f"  - filename: {file.filename if file else 'None'}")
-    print(f"  - parent_id_raw: {parent_id_raw}")
-    print(f"  - parent_id_raw type: {type(parent_id_raw)}")
-    print(f"  - form keys: {list(form.keys())}")
-    
     if not file or not hasattr(file, 'filename'):
         raise HTTPException(status_code=400, detail="No file uploaded")
     
@@ -74,16 +68,11 @@ async def upload(
     parsed_parent_id: int | None = None
     if parent_id_raw is not None and str(parent_id_raw).strip():
         s = str(parent_id_raw).strip().lower()
-        print(f"  - normalized string: '{s}'")
         if s not in ("", "null", "undefined", "none"):
             try:
                 parsed_parent_id = int(s)
-                print(f"  - parsed parent_id: {parsed_parent_id}")
             except ValueError:
-                print(f"  - ERROR: parent_id parse hatası")
                 raise HTTPException(status_code=400, detail="parent_id must be integer")
-    
-    print(f"  - final parent_id: {parsed_parent_id}")
     # parent_id normalize et
     parent_id: int | None = None
     if parent_id_raw is not None:
@@ -103,12 +92,8 @@ async def upload(
     if parsed_parent_id is not None:
         parent = db.get(FileModel, parsed_parent_id)
         if not parent or not parent.is_directory:
-            print(f"  - ERROR: Invalid parent folder - parent: {parent}")
             raise HTTPException(status_code=400, detail="Invalid parent folder")
         target_dir = parent.path
-        print(f"  - target_dir (klasör içi): {target_dir}")
-    else:
-        print(f"  - target_dir (ana dizin): {target_dir}")
 
     original = safe_name(file.filename)
     final_name = resolve_collision(target_dir, original)
