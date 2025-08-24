@@ -14,6 +14,20 @@ interface FileItem {
   parentId?: number | null;
 }
 
+interface DeleteConfirmState {
+  isOpen: boolean;
+  fileId: string | null;
+  fileName: string;
+  isFolder: boolean;
+}
+
+interface DownloadConfirmState {
+  isOpen: boolean;
+  fileId: string | null;
+  fileName: string;
+  fileSize?: number;
+}
+
 export const useFileManager = () => {
   const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
   const [folderPath, setFolderPath] = useState<{id: number | null, name: string}[]>([
@@ -28,6 +42,18 @@ export const useFileManager = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({
+    isOpen: false,
+    fileId: null,
+    fileName: '',
+    isFolder: false,
+  });
+  const [downloadConfirm, setDownloadConfirm] = useState<DownloadConfirmState>({
+    isOpen: false,
+    fileId: null,
+    fileName: '',
+    fileSize: undefined,
+  });
   const { toast } = useToast();
 
   const currentFiles = files.filter(file => 
@@ -87,13 +113,38 @@ export const useFileManager = () => {
     setFolderPath([{ id: null, name: 'Ana Dizin' }]);
   };
 
-  const handleDeleteFile = async (fileId: string) => {
+  const handleDeleteFile = (fileId: string) => {
+    const file = files.find(f => f.id === fileId);
+    if (!file) return;
+
+    // Önizleme açıksa kapat
+    if (previewFile) {
+      setPreviewFile(null);
+    }
+
+    setDeleteConfirm({
+      isOpen: true,
+      fileId: fileId,
+      fileName: file.name,
+      isFolder: file.type === 'folder',
+    });
+  };
+
+  const confirmDeleteFile = async () => {
+    if (!deleteConfirm.fileId) return;
+
     try {
-      await deleteFile(fileId);
+      await deleteFile(deleteConfirm.fileId);
+      
+      // Önizleme açıksa ve silinen dosya önizlemedeki dosyaysa kapat
+      if (previewFile && previewFile.id === deleteConfirm.fileId) {
+        setPreviewFile(null);
+      }
+      
       await loadFiles(); // Reload files after deletion
       toast({ 
         title: 'Başarılı', 
-        description: 'Öğe başarıyla silindi.' 
+        description: `${deleteConfirm.isFolder ? 'Klasör' : 'Dosya'} başarıyla silindi.` 
       });
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Öğe silinemedi';
@@ -161,6 +212,34 @@ export const useFileManager = () => {
     setPreviewFile(file);
   };
 
+  const handleDownloadFile = (fileId: string) => {
+    const file = files.find(f => f.id === fileId);
+    if (!file) return;
+
+    setDownloadConfirm({
+      isOpen: true,
+      fileId: fileId,
+      fileName: file.name,
+      fileSize: file.size,
+    });
+  };
+
+  const confirmDownloadFile = () => {
+    if (!downloadConfirm.fileId) return;
+
+    const link = document.createElement('a');
+    link.href = downloadUrl(downloadConfirm.fileId);
+    link.download = downloadConfirm.fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: 'İndirme Başlatıldı',
+      description: `"${downloadConfirm.fileName}" dosyası indiriliyor.`,
+    });
+  };
+
   const getDownloadUrl = (fileId: string) => downloadUrl(fileId);
 
   const handleClosePreview = () => {
@@ -184,6 +263,8 @@ export const useFileManager = () => {
     isUploading,
     uploadProgress,
     error,
+    deleteConfirm,
+    downloadConfirm,
     
     // Actions
     setSearchTerm,
@@ -193,6 +274,11 @@ export const useFileManager = () => {
     handleNavigateTo,
     handleGoHome,
     handleDeleteFile,
+    confirmDeleteFile,
+    setDeleteConfirm,
+    handleDownloadFile,
+    confirmDownloadFile,
+    setDownloadConfirm,
     handleCreateFolder,
     handleFileUpload,
     getDownloadUrl,

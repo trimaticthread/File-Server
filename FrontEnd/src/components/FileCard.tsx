@@ -31,10 +31,11 @@ interface FileCardProps {
   file: FileItem;
   onDelete: (fileId: string) => void;
   onPreview: (file: FileItem) => void;
+  onDownload: (fileId: string) => void;
   viewMode: 'grid' | 'list';
 }
 
-const FileCard: React.FC<FileCardProps> = ({ file, onDelete, onPreview, viewMode }) => {
+const FileCard: React.FC<FileCardProps> = ({ file, onDelete, onPreview, onDownload, viewMode }) => {
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
     const iconProps = { className: "w-8 h-8 text-blue-600" };
@@ -133,14 +134,7 @@ const FileCard: React.FC<FileCardProps> = ({ file, onDelete, onPreview, viewMode
                 )}
                 <DropdownMenuItem 
                   className="flex items-center space-x-2 hover:bg-gray-50"
-                  onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = downloadUrl(file.id);
-                    link.download = file.name;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
+                  onClick={() => onDownload(file.id)}
                 >
                   <Download className="w-4 h-4" />
                   <span>İndir</span>
@@ -161,8 +155,44 @@ const FileCard: React.FC<FileCardProps> = ({ file, onDelete, onPreview, viewMode
   }
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-blue-300">
+    <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-blue-300 relative">
       <CardContent className="p-4">
+        {/* Üç nokta menüsü - sağ üst köşe */}
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="secondary" size="sm" className="w-6 h-6 p-0 rounded-full shadow-sm">
+                <MoreVertical className="w-3 h-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-white border border-gray-200 shadow-lg">
+              {canPreview(file.name) && (
+                <DropdownMenuItem 
+                  className="flex items-center space-x-2 hover:bg-gray-50"
+                  onClick={() => onPreview(file)}
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>Önizle</span>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem 
+                className="flex items-center space-x-2 hover:bg-gray-50"
+                onClick={() => onDownload(file.id)}
+              >
+                <Download className="w-4 h-4" />
+                <span>İndir</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="flex items-center space-x-2 text-red-600 hover:bg-red-50"
+                onClick={() => onDelete(file.id)}
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Sil</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
         <div className="flex flex-col items-center text-center space-y-3">
           <div 
             className="relative"
@@ -174,37 +204,6 @@ const FileCard: React.FC<FileCardProps> = ({ file, onDelete, onPreview, viewMode
                 <Eye className="w-3 h-3 text-white" />
               </div>
             )}
-            <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="secondary" size="sm" className="w-6 h-6 p-0 rounded-full">
-                    <MoreVertical className="w-3 h-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-white border border-gray-200 shadow-lg">
-                  {canPreview(file.name) && (
-                    <DropdownMenuItem 
-                      className="flex items-center space-x-2 hover:bg-gray-50"
-                      onClick={() => onPreview(file)}
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span>Önizle</span>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem className="flex items-center space-x-2 hover:bg-gray-50">
-                    <Download className="w-4 h-4" />
-                    <span>İndir</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="flex items-center space-x-2 text-red-600 hover:bg-red-50"
-                    onClick={() => onDelete(file.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Sil</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
           </div>
           
           <div className="w-full">

@@ -23,6 +23,7 @@ interface FileGridProps {
   isLoading?: boolean;
   error?: string | null;
   onDeleteFile: (fileId: string) => void;
+  onDownloadFile: (fileId: string) => void;
   onPreviewFile: (file: FileItem) => void;
   onNavigateToFolder: (folderId: string, folderName: string) => void;
   onRetry?: () => void;
@@ -35,6 +36,7 @@ const FileGrid: React.FC<FileGridProps> = ({
   isLoading = false,
   error = null,
   onDeleteFile,
+  onDownloadFile,
   onPreviewFile,
   onNavigateToFolder,
   onRetry,
@@ -112,6 +114,7 @@ const FileGrid: React.FC<FileGridProps> = ({
             key={file.id}
             file={file}
             onDelete={onDeleteFile}
+            onDownload={onDownloadFile}
             onPreview={onPreviewFile}
             viewMode={viewMode}
           />

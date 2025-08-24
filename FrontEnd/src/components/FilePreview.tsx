@@ -19,9 +19,10 @@ interface FileItem {
 interface FilePreviewProps {
   file: FileItem | null;
   onClose: () => void;
+  onDownload?: (fileId: string) => void;
 }
 
-const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose }) => {
+const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, onDownload }) => {
   const [zoom, setZoom] = React.useState(1);
 
   if (!file) return null;
@@ -189,12 +190,17 @@ Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`}
               size="sm"
               className="flex items-center space-x-2"
               onClick={() => {
-                const link = document.createElement('a');
-                link.href = downloadUrl(file.id);
-                link.download = file.name;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                if (onDownload) {
+                  onDownload(file.id);
+                } else {
+                  // Fallback to direct download if onDownload is not provided
+                  const link = document.createElement('a');
+                  link.href = downloadUrl(file.id);
+                  link.download = file.name;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }
               }}
             >
               <Download className="w-4 h-4" />
